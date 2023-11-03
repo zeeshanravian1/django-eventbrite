@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "django-eventbrite"
+version = "1.0.0"
+description = "Eventbrite Events Manager"
+authors = ["Zeeshan Asim <zeeshanravian1@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.11.6"
+django = "^4.2.7"
+requests = "^2.31.0"
+
+
+[tool.poetry.group.dev.dependencies]
+autopep8 = "^2.0.4"
+black = "^23.10.1"
+ipykernel = "^6.26.0"
+pylint = "^3.0.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
