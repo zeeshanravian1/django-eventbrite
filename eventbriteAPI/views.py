@@ -34,13 +34,14 @@ def organizations(request, all_events=None) -> HttpResponse:
         return HttpResponse(f"Error: {response.json()}")
 
     all_organizations: list = [
-        {"id": organization.get("id"), "name": organization.get("name")}
+        {"id": int(organization.get("id")), "name": organization.get("name")}
         for organization in response.json().get("organizations")
     ]
 
     context: dict[str, list] = {"organizations": all_organizations}
 
     if all_events:
+        context["selected_organization_id"] = all_events[0]["organization_id"]
         context["events"] = all_events
 
     return render(request, "organizations.html", context)

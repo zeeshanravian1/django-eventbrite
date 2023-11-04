@@ -1,23 +1,23 @@
 {% extends 'base.html' %}
 {% load get_item %}
 {% block main %}
-    <h1>Home</h1>
-    <p> Welcome to the home page!</p>
-    <ul>
+    <h1 class="text-center mb-4">Organizations</h1>
+    <ul class="list-unstyled">
     {% for organization in organizations %}
-    	<li>
-            <a href="{% url 'events' organization.id %}">{{ organization.id }} - {{ organization.name }}</a>
-            <ul>
+        <li class="organization-item mb-3">
+            <a href="{% url 'events' organization.id %}">{{ organization.name }}</a>
+            {% if organization.id == selected_organization_id %}
+            <ul class="list-unstyled mt-2">
             {% for event in events %}
-                {% if event.organization_id.NAME  == organization.id.NAME %}
-                    <li>
-                        <a href="{% url 'event_details' event.id %}">{{ event.id }} - {{ event.name }}</a>
+                {% if event.organization_id == organization.id %}
+                    <li class="event-item mb-2">
+                        <a href="{% url 'event_details' event.id %}">{{ event.name }}</a>
                     </li>
                 {% endif %}
             {% endfor %}
             </ul>
+            {% endif %}
         </li>
-
     {% endfor %}
     </ul>
 {% endblock %}
