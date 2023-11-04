@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load get_item %}
+{% block main %}
+    <h1>Home</h1>
+    <p> Welcome to the home page!</p>
+    <ul>
+    {% for organization in organizations %}
+    	<li>
+            <a href="{% url 'events' organization.id %}">{{ organization.id }} - {{ organization.name }}</a>
+            <ul>
+            {% for event in events %}
+                {% if event.organization_id.NAME  == organization.id.NAME %}
+                    <li>
+                        <a href="{% url 'event_details' event.id %}">{{ event.id }} - {{ event.name }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        </li>
+
+    {% endfor %}
+    </ul>
+{% endblock %}

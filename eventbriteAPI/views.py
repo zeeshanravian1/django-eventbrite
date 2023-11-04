@@ -3,15 +3,15 @@
 
 """
 
-import json
 from django.http import HttpResponse
+from django.shortcuts import render
 import requests
 from requests.models import Response
 
 from .constants import BASE_URL, PRIVATE_TOKEN
 
 
-def organizations(request) -> HttpResponse:
+def organizations(request, all_events=None) -> HttpResponse:
     """
     View for the index page
 
@@ -38,7 +38,12 @@ def organizations(request) -> HttpResponse:
         for organization in response.json().get("organizations")
     ]
 
-    return HttpResponse(json.dumps(all_organizations))
+    context: dict[str, list] = {"organizations": all_organizations}
+
+    if all_events:
+        context["events"] = all_events
+
+    return render(request, "organizations.html", context)
 
 
 def events(request, organization_id: int) -> HttpResponse:
@@ -52,8 +57,6 @@ def events(request, organization_id: int) -> HttpResponse:
     **HttpResponse**: The response
 
     """
-
-    organization_id: int = 1878868997373
 
     headers: dict[str, str] = {
         "Authorization": f"Bearer {PRIVATE_TOKEN}",
@@ -70,11 +73,12 @@ def events(request, organization_id: int) -> HttpResponse:
             "id": event.get("id"),
             "name": event.get("name").get("text"),
             "description": event.get("description").get("text"),
+            "organization_id": organization_id,
         }
         for event in response.json().get("events")
     ]
 
-    return HttpResponse(json.dumps(all_events))
+    return organizations(request=request, all_events=all_events)
 
 
 def event_detail(request, event_id: int) -> HttpResponse:
@@ -88,8 +92,6 @@ def event_detail(request, event_id: int) -> HttpResponse:
     **HttpResponse**: The response
 
     """
-
-    event_id: int = 751518681607
 
     headers: dict[str, str] = {
         "Authorization": f"Bearer {PRIVATE_TOKEN}",
@@ -108,7 +110,10 @@ def event_detail(request, event_id: int) -> HttpResponse:
         "eventbrite_url": response.json().get("url"),
         "start_date": response.json().get("start"),
         "end_date": response.json().get("end"),
-        "cost": {
+    }
+
+    if response.json().get("ticket_classes", None):
+        event_details["cost"] = {
             "price": response.json()
             .get("ticket_classes")[0]
             .get("cost")
@@ -117,9 +122,11 @@ def event_detail(request, event_id: int) -> HttpResponse:
             .get("ticket_classes")[0]
             .get("cost")
             .get("currency"),
-        },
-        "venue": {
-            "venue_id": response.json().get("venue").get("id"),
+        }
+
+    if response.json().get("venue", None):
+        event_details["venue"] = {
+            "id": response.json().get("venue").get("id"),
             "country": response.json()
             .get("venue")
             .get("address")
@@ -150,7 +157,6 @@ def event_detail(request, event_id: int) -> HttpResponse:
             .get("address")
             .get("longitude"),
             "capacity": response.json().get("venue").get("capacity"),
-        },
-    }
+        }
 
-    return HttpResponse(json.dumps(event_details))
+    return render(request, "event.html", {"event": event_details})
