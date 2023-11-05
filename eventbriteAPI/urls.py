@@ -10,4 +10,5 @@ urlpatterns: list[URLPattern] = [
         views.event_detail,
         name="event_details",
     ),
+    path("create-event", views.create_event, name="create_event"),
 ]
