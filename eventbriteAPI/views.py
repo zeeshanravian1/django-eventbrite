@@ -8,6 +8,7 @@ from django.shortcuts import render
 import requests
 from requests.models import Response
 from timezonefinder import TimezoneFinder
+from geopy.geocoders import Nominatim
 
 from .constants import BASE_URL, PRIVATE_TOKEN
 from .forms import EventForm
@@ -225,12 +226,49 @@ def create_event(request) -> HttpResponseRedirect | HttpResponse:
     if request.method == "POST" and form.is_valid():
         organization_id = form.cleaned_data["organization"]
 
+        # Create venue
+        geolocator = Nominatim(user_agent="geoapiExercises")
+
+        location = geolocator.reverse(
+            str(form.cleaned_data["latitude"])
+            + ","
+            + str(form.cleaned_data["longitude"])
+        )
+
+        location_info: dict = location.raw
+
+        venue_data = {
+            "venue": {
+                "name": location_info["name"],
+                "address": {
+                    "address_1": location_info["address"]["road"],
+                    "city": location_info["address"]["city"],
+                    "region": location_info["address"]["state"],
+                    "postal_code": location_info["address"]["postcode"],
+                    "country": location_info["address"][
+                        "country_code"
+                    ].upper(),
+                },
+            }
+        }
+
+        url: str = f"https://www.eventbriteapi.com/v3/organizations/{organization_id}/venues/"
+
+        response: Response = requests.post(
+            url=url, headers=headers, json=venue_data, timeout=20
+        )
+
+        if response.status_code != 200:
+            return HttpResponse(f"Error: {response.json()}")
+
+        # Get the timezone for the event
         tz_finder = TimezoneFinder()
         timezone: str | None = tz_finder.timezone_at(
             lng=form.cleaned_data["longitude"],
             lat=form.cleaned_data["latitude"],
         )
 
+        # Create event
         event_data: dict = {
             "event": {
                 "name": {
@@ -249,6 +287,7 @@ def create_event(request) -> HttpResponseRedirect | HttpResponse:
                     .strftime("%Y-%m-%dT%H:%M:%SZ"),
                 },
                 "currency": form.cleaned_data["currency"],
+                "venue_id": response.json().get("id"),
             }
         }
 

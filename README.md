@@ -213,6 +213,14 @@ To deactivate virtual environment type following command in terminal.
 exit
 ```
 
+### Geospatial Libraries
+
+On Debian/Ubuntu, you are advised to install the following packages which will install, directly or by dependency, the required geospatial libraries:
+
+```bash
+sudo apt-get install binutils libproj-dev gdal-bin
+```
+
 ## Usage
 
 - Activate Virtual Environment:
